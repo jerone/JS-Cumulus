@@ -9,7 +9,7 @@
 *
 *	Copyright 2010, Jeroen van Warmerdam
 *
-*  Copyright 2008, Dawid Fatyga
+*	Copyright 2008, Dawid Fatyga
 *
 * 	This program is free software: you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by

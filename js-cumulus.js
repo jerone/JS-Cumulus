@@ -1,7 +1,7 @@
 /*\
-JS-Cumulus - JavaScript Cumulus Plugin (codenamed jscumulus)
+JS-Cumulus - WP-Cumulus in JavaScript (codenamed jscumulus)
 Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
-Based on WP-Cumulus plugin by Roy Tanck (http://www.roytanck.com)
+Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
 @date 18.01.2010 00:15:00
@@ -343,7 +343,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 					p = Math.random() * (Math.PI);
 					t = Math.random() * (2 * Math.PI);
 				}
-				tags[++i].position.set(
+				tags[i++].position.set(
 					radius * Math.sin(p) * Math.cos(t),
 					radius * Math.sin(p) * Math.sin(t),
 					radius * Math.cos(p)

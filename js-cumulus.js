@@ -1,59 +1,57 @@
-/*
-* 	JS-Cumulus - JavaScript Cumulus Plugin (codenamed jscumulus)
-* 	Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
-* 	Based on WP-Cumulus plugin by Roy Tanck (http://www.roytanck.com)
-*
-* 	@author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-* 	@date 18.01.2010 00:15:00
-* 	@version 0.1
-*
-*	Copyright 2010, Jeroen van Warmerdam
-*
-*	Copyright 2008, Dawid Fatyga
-*
-* 	This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation, either version 3 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/*\
+JS-Cumulus - JavaScript Cumulus Plugin (codenamed jscumulus)
+Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
+Based on WP-Cumulus plugin by Roy Tanck (http://www.roytanck.com)
 
-/*
-*	TODO:
-*		IDEA: Mouse panning, zooming;
-*		ADD: Documentation;
-*		ADD: Z-sorting;
-*		ADD: slow down more on tag mouse focus;
-*		ADD: Calculating the color instead using the Opacity property;
-*		FIX: Customizable styles for Tags disables the default hilight Color;
-*/
+@author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
+@date 18.01.2010 00:15:00
+@version 0.1
 
-/*
-* TagCloud:
-*	element	=> Element			=> Element to append TagCloud;
-*	tags	=> Array [Tag,...]	=> List of tags;
-*	width	=> Float			=> Width of container (optional)(default: 400);
-*	height	=> Float			=> Height of container (optional)(default: same as width);
-*	options	=> Object			=> Extra settings (optional);
-*		id			=> String		=> Id of the wrapper (optional)(default: "tagCloud1234");
-*		className	=> String		=> Class of the wrapper (optional)(default: "tagCloud");
-*		uniform		=> Boolean		=> Devide tags evenly (optional)(default: true);
-*		radius		=> Float		=> Radius (optional)(default: Math.min(width, height) / 4);
-*		fontMin		=> Float		=> Font size for smallest tag in pixels (optional)(default: 10);
-*		fontMax		=> Float		=> Font size for biggest tag in pixels (optional)(default: 24);
-*	
-* Tag:
-*	title	=> String			=> Title of the tag;
-*	rank	=> Integer 0-100	=> Importance of the tag (optional)(default: 30);
-*	url		=> String			=> Link of the tag (optional)(default "#");
-*/
+Copyright 2010, Jeroen van Warmerdam
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\*/
+
+/*\
+TODO:
+IDEA: Mouse panning, zooming;
+ADD: Documentation;
+ADD: Z-sorting;
+ADD: slow down more on tag mouse focus;
+ADD: Calculating the color instead using the Opacity property;
+FIX: Customizable styles for Tags disables the default hilight Color;
+\*/
+
+/*\
+TagCloud:
+element	=> Element			=> Element to append TagCloud;
+tags	=> Array [Tag,...]	=> List of tags;
+width	=> Float			=> Width of container (optional)(default: 400);
+height	=> Float			=> Height of container (optional)(default: same as width);
+options	=> Object			=> Extra settings (optional);
+id			=> String		=> Id of the wrapper (optional)(default: "tagCloud1234");
+className	=> String		=> Class of the wrapper (optional)(default: "tagCloud");
+uniform		=> Boolean		=> Devide tags evenly (optional)(default: true);
+radius		=> Float		=> Radius (optional)(default: Math.min(width, height) / 4);
+fontMin		=> Float		=> Font size for smallest tag in pixels (optional)(default: 10);
+fontMax		=> Float		=> Font size for biggest tag in pixels (optional)(default: 24);
+		
+Tag:
+title	=> String			=> Title of the tag;
+rank	=> Integer 0-100	=> Importance of the tag (optional)(default: 30);
+url		=> String			=> Link of the tag (optional)(default "#");
+\*/
 
 (function(_window, undefined) {
 
@@ -69,7 +67,6 @@
 		FontMin: 10, 			// Font size for smallest tag in pixels;
 		FontMax: 24, 			// Font size for biggest tag in pixels;
 		Depth: 150, 			// Perspective depth;
-		/*Opacity: true, 		// Use opacity instead of colors;*/
 		AnimationTime: 1, 		// Animation time and interval, the less it is the faster the animation is;
 		HoverStop: true			// Stop animation when tag is hovered;
 	};
@@ -105,54 +102,55 @@
 			}
 			return function(angle) { return cosine[Math.round(Math.abs(angle) * 10) % total]; };
 		})(),
-		fixEvent = function(fn) {
-			return function(event) {
-				if(!event.target) { event.target = event.srcElement || _doc; }
-				if(event.target.nodeType === 3) { event.target = event.target.parentNode; }
-				if(!event.relatedTarget && event.fromElement) { event.relatedTarget = event.fromElement === event.target ? event.toElement : event.fromElement; }
-				if(event.pageX == null && event.clientX != null) {
-					var docE = _doc.documentElement, body = _doc.body;
-					event.pageX = event.clientX + (docE && docE.scrollLeft || body && body.scrollLeft || 0) - (docE && docE.clientLeft || body && body.clientLeft || 0);
-					event.pageY = event.clientY + (docE && docE.scrollTop || body && body.scrollTop || 0) - (docE && docE.clientTop || body && body.clientTop || 0);
+		Event = {
+			Add: (function() {
+				if(_doc.addEventListener) {
+					return function(obj, type, fn) {
+						fn = Event.Fix.call(this, type === "mouseenter" || type === "mouseleave" ? Event.mouseEnter(fn) : fn);
+						type = type === "mouseenter" && "mouseover" || type === "mouseleave" && "mouseout" || type;
+						obj.addEventListener(type, fn, false);
+						return function() {
+							obj.removeEventListener(type, fn, false);
+							return true;
+						};
+					};
+				} else if(_doc.attachEvent) {
+					return function(obj, type, fn) {
+						fn = Event.Fix.call(this, fn);
+						obj.attachEvent("on" + type, fn);
+						return function() {
+							obj.detachEvent("on" + type, fn);
+							return true;
+						};
+					};
 				}
-				fn.call(this, event);
-			};
-		},
-		mouseEnter = function(fn) {  // used in addEvent;
-			var isAChildOf = function(parent, child) {
-				if(parent === child) { return false; }
-				while(child && child !== parent) { child = child.parentNode; }
-				return child === parent;
-			};
-			return function(event) {
-				var relTarget = event.relatedTarget;
-				if(this === relTarget || isAChildOf(this, relTarget)) { return; }
-				fn.call(this, event);
-			};
-		},
-		addEvent = (function() {
-			if(_doc.addEventListener) {
-				return function(obj, type, fn) {
-					fn = fixEvent.call(this, (type === "mouseenter" || type === "mouseleave" ? mouseEnter(fn) : fn));
-					type = type === "mouseenter" && "mouseover" || type === "mouseleave" && "mouseout" || type;
-					obj.addEventListener(type, fn, false);
-					return function() {
-						obj.removeEventListener(type, fn, false);
-						return true;
-					};
+			})(),
+			Fix: function(fn) {
+				return function(event) {
+					if(!event.target) { event.target = event.srcElement || _doc; }
+					if(event.target.nodeType === 3) { event.target = event.target.parentNode; }
+					if(!event.relatedTarget && event.fromElement) { event.relatedTarget = event.fromElement === event.target ? event.toElement : event.fromElement; }
+					if(event.pageX == null && event.clientX != null) {
+						var docE = _doc.documentElement, body = _doc.body;
+						event.pageX = event.clientX + (docE && docE.scrollLeft || body && body.scrollLeft || 0) - (docE && docE.clientLeft || body && body.clientLeft || 0);
+						event.pageY = event.clientY + (docE && docE.scrollTop || body && body.scrollTop || 0) - (docE && docE.clientTop || body && body.clientTop || 0);
+					}
+					fn.call(this, event);
 				};
-			} else if(_doc.attachEvent) {
-				return function(obj, type, fn) {
-					fn = fixEvent.call(this, fn);
-					obj.attachEvent("on" + type, fn);
-					return function() {
-						obj.detachEvent("on" + type, fn);
-						return true;
-					};
+			},
+			mouseEnter: function(fn) {
+				var isAChildOf = function(parent, child) {
+					if(parent === child) { return false; }
+					while(child && child !== parent) { child = child.parentNode; }
+					return child === parent;
+				};
+				return function(event) {
+					var relTarget = event.relatedTarget;
+					if(this === relTarget || isAChildOf(this, relTarget)) { return; }
+					fn.call(this, event);
 				};
 			}
-		})();
-
+		};
 
 
 	/** Vector Class **/
@@ -166,18 +164,14 @@
 		if(x !== undefined && isObject(x)) { this.set(x.x, x.y, x.z); }
 		else { this.set(x, y, z); }
 
-		this.mult = function(factor) {
+		this.Multiply = function(factor) {
 			this.x *= factor;
 			this.y *= factor;
 			this.z *= factor;
 			return this;
 		};
 
-		this.sqr = function() {  // Returns square of length;
-			return this.x * this.x + this.y * this.y + this.z * this.z;
-		};
-
-		this.longEnough = function() {
+		this.Done = function() {
 			return Math.abs(this.x) > 0.01 || Math.abs(this.y) > 0.01 || Math.abs(this.z) > 0.01;
 		};
 	};
@@ -223,7 +217,7 @@
 			});
 
 			var self = this;
-			addEvent(this.element, "mousemove", function(event) {
+			Event.Add(this.element, "mousemove", function(event) {
 				return function(event) {
 					if(!parent.active) { parent.Animate(); }
 					if(!(Defaults.HoverStop && !this.active)) {
@@ -234,10 +228,10 @@
 					}
 				} .call(self, event);
 			});
-			addEvent(this.element, "mouseenter", function() {
+			Event.Add(this.element, "mouseenter", function() {
 				self.active = true;
 			});
-			addEvent(this.element, "mouseleave", function() {
+			Event.Add(this.element, "mouseleave", function() {
 				self.active = false;
 			});
 		};
@@ -271,10 +265,10 @@
 		li = aa = null;  // clean up memory leak;
 
 		this.Activate = function(attractor) {
-			addEvent(this.element, "mouseenter", function() {
+			Event.Add(this.element, "mouseenter", function() {
 				attractor.active = false;
 			});
-			addEvent(this.element, "mouseleave", function() {
+			Event.Add(this.element, "mouseleave", function() {
 				attractor.active = true;
 			});
 		};
@@ -349,12 +343,11 @@
 					p = Math.random() * (Math.PI);
 					t = Math.random() * (2 * Math.PI);
 				}
-				tags[i].position.set(
-					radius * Math.cos(t) * Math.sin(p),
-					radius * Math.sin(t) * Math.sin(p),
+				tags[++i].position.set(
+					radius * Math.sin(p) * Math.cos(t),
+					radius * Math.sin(p) * Math.sin(t),
 					radius * Math.cos(p)
 				);
-				i++;
 			}
 			this.Update();
 		};
@@ -410,9 +403,9 @@
 					if(this.attractor.active) {
 						this.delta = this.attractor.mouse;
 					} else {
-						this.delta = this.delta.mult(0.98);
+						this.delta = this.delta.Multiply(0.98);
 					}
-					if(this.delta.longEnough()) {
+					if(this.delta.Done()) {
 						this.Update(this.delta);
 					} else {
 						this.Stop();

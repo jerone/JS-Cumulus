@@ -28,9 +28,8 @@ TODO:
 IDEA: Mouse panning, zooming;
 ADD: Documentation;
 ADD: Z-sorting;
-ADD: slow down more on tag mouse focus;
+ADD: Slow down more on tag mouse focus;
 ADD: Calculating the color instead using the Opacity property;
-FIX: Customizable styles for Tags disables the default hilight Color;
 \*/
 
 /*\
@@ -80,7 +79,9 @@ url		=> String			=> Link of the tag (optional)(default "#");
 		_Surface = _win.Surface,
 		_obj = Object.prototype.toString,
 		_objObj = "[object Object]",
+		_objElm = /\[object HTML.*\]/,
 		isObject = function(arg) { return _obj.call(arg) === _objObj; },
+		isElement = function(arg) { return _objElm.test(_obj.call(arg)); },
 		Radian = Math.PI / 180,
 		sine = [], cosine = [],
 		Sine = (function() {
@@ -234,7 +235,9 @@ url		=> String			=> Link of the tag (optional)(default "#");
 			Event.Add(this.element, "mouseleave", function() {
 				self.active = false;
 			});
+			return this;
 		};
+		return this;
 	};
 
 
@@ -271,17 +274,23 @@ url		=> String			=> Link of the tag (optional)(default "#");
 			Event.Add(this.element, "mouseleave", function() {
 				attractor.active = true;
 			});
+			return this;
 		};
 	};
 
 
 
 	/** TagCloud Class **/
-	var TagCloud = function(element, tags, width, height, options) {
-		if(!element) { throw "[TagCloud] No element!"; }
+	var TagCloud = function(/* element, */tags, width, height, options) {
+		if(isElement(arguments[0])) {
+			this.element = arguments[0];
+			tags = arguments[1];
+			width = arguments[2];
+			height = arguments[3];
+			options = arguments[4];
+		}
 
-		var options = options || isObject(arguments[3]) && arguments[3] || isObject(arguments[2]) && arguments[2] || {},
-			container = _doc.createElement("ul");
+		var options = options || isObject(height) && height || isObject(width) && width || {};
 
 		this.active = false;
 		this.delta = new Vector(-2, -2);
@@ -298,7 +307,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 		this.items = tags && tags.length && tags.slice(0) || (function() {  // used slice(0) to clone the tags;
 			var i = 50, ii = 0, tags = [];
 			for(; i >= ii; --i) {
-				tags[i] = new Tag(".", 100);
+				tags[i] = new Tag("+", 100);
 			}
 			return tags;
 		})();
@@ -309,28 +318,29 @@ url		=> String			=> Link of the tag (optional)(default "#");
 			options.className || Defaults.Class
 		);
 
-		var i = this.items.length - 1, ii = 0, item;
-		for(; i >= ii; --i) {
-			item = this.items[i];
-			if(item instanceof Tag && item.title) {  // only Tag class with at least titles allowed;
-				container.appendChild(item.element);
-				item.Activate(this.attractor);  // only activate after appended to DOM;
-			} else {
-				this.items.splice(i, 1);
+
+		this.Distribute = function(element) {
+			var container = _doc.createElement("ul");
+			var i = this.items.length - 1, ii = 0, item;
+			for(; i >= ii; --i) {
+				item = this.items[i];
+				if(item instanceof Tag && item.title) {  // only Tag class with at least titles allowed;
+					container.appendChild(item.element);
+					item.Activate(this.attractor);  // only activate after appended to DOM;
+				} else {
+					this.items.splice(i, 1);
+				}
 			}
-		}
-		this.attractor.element.appendChild(container);
-		element.appendChild(this.attractor.element);
-		this.attractor.Activate();  // only activate after appended to DOM;
+			this.attractor.element.appendChild(container);
+			element.appendChild(this.attractor.element);
+			this.attractor.Activate();  // only activate after appended to DOM;
 
-		this.position = new Vector({  // only calculate tagcloud position with attractor position after it's appended to DOM;
-			x: this.size.width / 2 + this.attractor.position.x,
-			y: this.size.height / 2 + this.attractor.position.y
-		});
+			this.position = new Vector({  // only calculate tagcloud position with attractor position after it's appended to DOM;
+				x: this.size.width / 2 + this.attractor.position.x,
+				y: this.size.height / 2 + this.attractor.position.y
+			});
 
-		options = container = null;  // clean up memory leak;
-
-		this.Distribute = function() {
+			options = container = null;  // clean up memory leak;
 			var p = 0, t = 0, i = 0,
 				tags = this.items,
 				count = tags.length - 1,
@@ -350,6 +360,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 				);
 			}
 			this.Update();
+			return this;
 		};
 
 		this.Update = function(delta) {
@@ -375,6 +386,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 				li.style.left = (this.position.x + x * per) - (li.clientWidth / 2) + "px";
 				li.style.top = (this.position.y + y * per) - (li.clientHeight / 2) + "px";
 			}
+			return this;
 		};
 
 		this.Pause = function() {
@@ -383,6 +395,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 				_win.clearInterval(this.animation);
 				this.animation = null;  // clean up memory leak;
 			}
+			return this;
 		};
 
 		this.Stop = function() {
@@ -392,6 +405,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 				_win.clearInterval(this.animation);
 				this.animation = null;  // clean up memory leak;
 			}
+			return this;
 		};
 
 		this.Animate = function(delta) {
@@ -412,9 +426,11 @@ url		=> String			=> Link of the tag (optional)(default "#");
 					}
 				} .call(self);
 			}, Defaults.AnimationTime);
+			return this;
 		};
 
-		this.Distribute();
+		//this.Distribute();
+		return this;
 	};
 
 	_win.JSCumulus = JSCumulus = {};

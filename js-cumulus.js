@@ -429,7 +429,9 @@ url		=> String			=> Link of the tag (optional)(default "#");
 			return this;
 		};
 
-		//this.Distribute();
+		if(this.element) {
+			this.Distribute(this.element);
+		}
 		return this;
 	};
 

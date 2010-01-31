@@ -69,10 +69,10 @@
 				new Tag("<img src='icon-tagcloud.gif' alt='tagcloud' />")
 			];
 			tagCloud2 = new TagCloud(
-				document.getElementById("test2"),
+				document.getElementById("tagCloud2"),
 				tags2,
-				parseFloat(document.getElementById("test2").clientWidth) - 4,
-				parseFloat(document.getElementById("test2").clientWidth) - 4
+				parseFloat(document.getElementById("tagCloud2").clientWidth) - 4,
+				parseFloat(document.getElementById("tagCloud2").clientWidth) - 4
 			);
 			tagCloud2.Animate();
 			//console.timeEnd("TagCloud2");
@@ -80,19 +80,19 @@
 
 			/* buttons */
 			jQuery("#btn_tagcloud_reset").click(function() {
-				tagCloud1.Distribute();
+				tagCloud2.Distribute();
 			});
 			jQuery("#btn_tagcloud_update").click(function() {
-				tagCloud1.Animate(new Vector(-2, -2, 0));
+				tagCloud2.Animate(new Vector(-2, -2, 0));
 			});
 			var x = 0;
 			jQuery("#btn_tagcloud_pause").click(function() {
-				tagCloud1[x % 2 ? "Animate" : "Pause"]();
+				tagCloud2[x % 2 ? "Animate" : "Pause"]();
 				jQuery(this).val(x % 2 ? "Pause" : "Resume");
 				x++;
 			});
 			jQuery("#btn_tagcloud_stop").click(function() {
-				tagCloud1.Stop();
+				tagCloud2.Stop();
 			});
 		});
 	</script>
@@ -102,11 +102,11 @@
 		{
 			background-color: black;
 		}
-		#test1
+		#tagCloud1
 		{
 			padding: 100px;
 		}
-		#test2
+		#tagCloud2
 		{
 			padding: 2px;
 			width: 100%;
@@ -167,21 +167,18 @@
 	</style>
 </head>
 <body>
-	<div id="test1">
-	</div>
+	<div id="tagCloud1"></div>
 	<div id="widget">
-		<h4>
-			Tag Cloud</h4>
-		<div id="test2">
-		</div>
+		<h4>Tag Cloud</h4>
+		<div id="tagCloud2"></div>
 	</div>
 	<input type="button" id="btn_tagcloud_reset" value="Reset" />
-	<input type="button" id="btn_tagcloud_update" value="Update" />
+	<input type="button" id="btn_tagcloud_update" value="Spin" />
 	<input type="button" id="btn_tagcloud_pause" value="Pause" />
 	<input type="button" id="btn_tagcloud_stop" value="Stop" />
 
 	<script type="text/javascript">
-		tagCloud1.Distribute(document.getElementById("test1")).Animate();
+		tagCloud1.Distribute(document.getElementById("tagCloud1")).Animate();
 	</script>
 
 </body>

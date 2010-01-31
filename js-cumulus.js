@@ -24,32 +24,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \*/
 
 /*\
-TODO:
-IDEA: Mouse panning, zooming;
-ADD: Documentation;
-ADD: Z-sorting;
-ADD: Slow down more on tag mouse focus;
-ADD: Calculating the color instead using the Opacity property;
+*	TODO:
+*		IDEA: Mouse panning, zooming;
+*		ADD: Documentation;
+*		ADD: Z-sorting;
+*		ADD: Slow down more on tag mouse focus;
+*		ADD: Calculating the color instead using the Opacity property;
 \*/
 
 /*\
-TagCloud:
-element	=> Element			=> Element to append TagCloud;
-tags	=> Array [Tag,...]	=> List of tags;
-width	=> Float			=> Width of container (optional)(default: 400);
-height	=> Float			=> Height of container (optional)(default: same as width);
-options	=> Object			=> Extra settings (optional);
-id			=> String		=> Id of the wrapper (optional)(default: "tagCloud1234");
-className	=> String		=> Class of the wrapper (optional)(default: "tagCloud");
-uniform		=> Boolean		=> Devide tags evenly (optional)(default: true);
-radius		=> Float		=> Radius (optional)(default: Math.min(width, height) / 4);
-fontMin		=> Float		=> Font size for smallest tag in pixels (optional)(default: 10);
-fontMax		=> Float		=> Font size for biggest tag in pixels (optional)(default: 24);
-		
-Tag:
-title	=> String			=> Title of the tag;
-rank	=> Integer 0-100	=> Importance of the tag (optional)(default: 30);
-url		=> String			=> Link of the tag (optional)(default "#");
+*	TagCloud arguments:
+*		element	=> Element			=> Element to append TagCloud (optional)(default: document.body);
+*		tags	=> Array [Tag,...]	=> List of tags (mandatory);
+*		width	=> Float			=> Width of container (optional)(default: 400);
+*		height	=> Float			=> Height of container (optional)(default: same as width);
+*		options	=> Object			=> Extra settings (optional);
+*			id			=> String		=> Id of the wrapper (optional)(default: "tagCloud1234");
+*			className	=> String		=> Class of the wrapper (optional)(default: "tagCloud");
+*			consistent	=> Boolean		=> Devide tags evenly (optional)(default: true);
+*			radius		=> Float		=> Radius (optional)(default: Math.min(width, height) / 4);
+*			fontMin		=> Float		=> Font size for smallest tag in pixels (optional)(default: 10);
+*			fontMax		=> Float		=> Font size for biggest tag in pixels (optional)(default: 24);
+*
+*	TagCloud functions:
+*		Distribute	=> Function	=> Will distribute tags in tagcloud on page (optional if element in TagCloud function is defined);
+*			element	=> Element	=> Element to append TagCloud, will override argument from TagCloud function (optional)(default: document.body);
+*		Animate		=> Function	=> Will animate the tagcloud (mandatory);
+*			delta	=> Vector	=> 
+*		Pause		=> Function	=> Will temporary pause the animation, to resume use Animate function (optional);
+*		Stop		=> Function	=> Will immediately stop the animation, to start use Animate function (optional);
+*		Update		=> Function	=> 
+*
+*	Tag arguments:
+*		title	=> String			=> Title of the tag;
+*		rank	=> Integer 0-100	=> Importance of the tag (optional)(default: 30);
+*		url		=> String			=> Link of the tag (optional)(default "#");
 \*/
 
 (function(_window, undefined) {
@@ -60,7 +69,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 		Class: "tagCloud", 		// Tagcloud class;
 		Width: 400, 			// Tagcloud width in pixels;
 		Heigth: 400, 			// Tagcloud height in pixels;
-		Uniform: true, 			// Devide tags evenly;
+		Consistent: true, 		// Devide tags evenly;
 		Rank: 30, 				// Tag importance in procents;
 		Url: "#", 				// Tag url;
 		FontMin: 10, 			// Font size for smallest tag in pixels;
@@ -79,9 +88,8 @@ url		=> String			=> Link of the tag (optional)(default "#");
 		_Surface = _win.Surface,
 		_obj = Object.prototype.toString,
 		_objObj = "[object Object]",
-		_objElm = /\[object HTML.*\]/,
 		isObject = function(arg) { return _obj.call(arg) === _objObj; },
-		isElement = function(arg) { return _objElm.test(_obj.call(arg)); },
+		isElement = function(arg) { return !!arg.nodeType; },
 		Radian = Math.PI / 180,
 		sine = [], cosine = [],
 		Sine = (function() {
@@ -303,7 +311,7 @@ url		=> String			=> Link of the tag (optional)(default "#");
 			max: parseFloat(options.fontMax) || Defaults.FontMax
 		};
 		this.radius = options.radius || Math.min(this.size.width, this.size.height) / 4;
-		this.uniform = options.uniform !== undefined ? !!options.uniform : Defaults.Uniform;
+		this.consistent = options.consistent !== undefined ? !!options.consistent : Defaults.Consistent;
 		this.items = tags && tags.length && tags.slice(0) || (function() {  // used slice(0) to clone the tags;
 			var i = 50, ii = 0, tags = [];
 			for(; i >= ii; --i) {
@@ -318,13 +326,15 @@ url		=> String			=> Link of the tag (optional)(default "#");
 			options.className || Defaults.Class
 		);
 
+		options = null;  // clean up memory leak;
 
 		this.Distribute = function(element) {
-			var container = _doc.createElement("ul");
-			var i = this.items.length - 1, ii = 0, item;
+			var element = element || this.element || _doc.body,
+				container = _doc.createElement("ul"),
+				i = this.items.length - 1, ii = 0, item;
 			for(; i >= ii; --i) {
 				item = this.items[i];
-				if(item instanceof Tag && item.title) {  // only Tag class with at least titles allowed;
+				if(item instanceof Tag && item.title) {  // only Tag class allowed with at least titles;
 					container.appendChild(item.element);
 					item.Activate(this.attractor);  // only activate after appended to DOM;
 				} else {
@@ -340,20 +350,16 @@ url		=> String			=> Link of the tag (optional)(default "#");
 				y: this.size.height / 2 + this.attractor.position.y
 			});
 
-			options = container = null;  // clean up memory leak;
-			var p = 0, t = 0, i = 0,
+			container = null;  // clean up memory leak;
+
+			var p = 0, t = 0,
 				tags = this.items,
-				count = tags.length - 1,
+				i = 0, l = tags.length,
 				radius = this.radius;
-			while(i <= count) {
-				if(this.uniform) {
-					p = Math.acos(-1 + (2 * i) / count);
-					t = Math.sqrt(count * Math.PI) * p;
-				} else {
-					p = Math.random() * (Math.PI);
-					t = Math.random() * (2 * Math.PI);
-				}
-				tags[i++].position.set(
+			for(; i < l; i++) {
+				p = this.consistent ? Math.acos(-1 + (2 * i) / l) : Math.random() * (Math.PI);
+				t = this.consistent ? Math.sqrt(l * Math.PI) * p : Math.random() * (2 * Math.PI);
+				tags[i].position.set(
 					radius * Math.sin(p) * Math.cos(t),
 					radius * Math.sin(p) * Math.sin(t),
 					radius * Math.cos(p)

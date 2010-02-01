@@ -108,15 +108,18 @@
 		}
 		#tagCloud2
 		{
-			padding: 2px;
-			width: 100%;
+			border-bottom: 1px solid silver;
+			margin-bottom: 5px;
+			padding: 2px 2px 5px 2px;
+			width: 100%;  /* needed for IE to calc width */
 		}
 		#widget
 		{
 			border: 1px solid silver;
 			margin: 10px;
 			padding: 10px;
-			width: 220px;
+			text-align:center;
+			width: 240px;
 		}
 		#widget h4
 		{
@@ -171,11 +174,11 @@
 	<div id="widget">
 		<h4>Tag Cloud</h4>
 		<div id="tagCloud2"></div>
+		<input type="button" id="btn_tagcloud_reset" value="Reset" />
+		<input type="button" id="btn_tagcloud_update" value="Spin" />
+		<input type="button" id="btn_tagcloud_pause" value="Pause" />
+		<input type="button" id="btn_tagcloud_stop" value="Stop" />
 	</div>
-	<input type="button" id="btn_tagcloud_reset" value="Reset" />
-	<input type="button" id="btn_tagcloud_update" value="Spin" />
-	<input type="button" id="btn_tagcloud_pause" value="Pause" />
-	<input type="button" id="btn_tagcloud_stop" value="Stop" />
 
 	<script type="text/javascript">
 		tagCloud1.Distribute(document.getElementById("tagCloud1")).Animate();

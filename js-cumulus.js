@@ -86,6 +86,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		_Tag = _win.Tag,
 		_Vector = _win.Vector,
 		_Surface = _win.Surface,
+		_TagID = 1,
 		_obj = Object.prototype.toString,
 		_objObj = "[object Object]",
 		isObject = function(arg) { return _obj.call(arg) === _objObj; },
@@ -250,22 +251,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-	var __TagId = 0;
-	function getTagId() {
-		__TagId += 1;
-		return __TagId;
-	}
-
 	/** Tag Class **/
 	var Tag = function(title, rank, url) {
-		this.id = getTagId();
+		this.id = _TagID++;
 		this.title = title;
 		this.rank = ((!isNaN(rank) && rank >= 0 && rank <= 100) ? rank : Defaults.Rank) / 100;
 		this.url = url || (isNaN(rank) ? rank : false) || Defaults.Url;
 		this.position = new Vector();
 
-		var li = _doc.createElement("li"),
-			aa = _doc.createElement("a");
+		var aa = _doc.createElement("a"),
+			li = _doc.createElement("li");
 		aa.setAttribute("id", "jsCumulus" + this.id);
 		aa.setAttribute("href", this.url);
 		aa.innerHTML = this.title;
@@ -273,7 +268,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		li.style.position = "absolute";
 		li.appendChild(aa);
 		this.element = li;
-		li = aa = null;  // clean up memory leak;
+		li = aa = null;
 
 		this.Activate = function(attractor) {
 			Event.Add(this.element, "mouseenter", function() {
@@ -312,7 +307,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		};
 		this.radius = options.radius || Math.min(this.size.width, this.size.height) / 4;
 		this.consistent = options.consistent !== undefined ? !!options.consistent : Defaults.Consistent;
-		this.items = tags && tags.length && tags.slice(0) || (function() {  // used slice(0) to clone the tags;
+		this.items = tags && tags.length && tags.slice(0) || (function() {  // slice(0) to clone the tags;
 			var i = 50, ii = 0, tags = [];
 			for(; i >= ii; --i) {
 				tags[i] = new Tag("+", 100);
@@ -326,7 +321,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			options.className || Defaults.Class
 		);
 
-		options = null;  // clean up memory leak;
+		options = null;
 
 		this.Distribute = function(element) {
 			var element = element || this.element || _doc.body,
@@ -350,7 +345,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				y: this.size.height / 2 + this.attractor.position.y
 			});
 
-			container = null;  // clean up memory leak;
+			container = null;
 
 			var p = 0, t = 0,
 				tags = this.items,
@@ -365,6 +360,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					radius * Math.cos(p)
 				);
 			}
+			p = t = tags = i = l = radius = null;
 			this.Update();
 			return this;
 		};
@@ -392,6 +388,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				li.style.left = (this.position.x + x * per) - (li.clientWidth / 2) + "px";
 				li.style.top = (this.position.y + y * per) - (li.clientHeight / 2) + "px";
 			}
+			delta = tags = deltA = deltB = sinA = cosA = sinB = cosB = fontRange = i = l = null;
 			return this;
 		};
 
@@ -399,7 +396,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			if(this.animation) {
 				this.active = false;
 				_win.clearInterval(this.animation);
-				this.animation = null;  // clean up memory leak;
+				this.animation = null;
 			}
 			return this;
 		};
@@ -409,7 +406,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			if(this.animation) {
 				this.active = false;
 				_win.clearInterval(this.animation);
-				this.animation = null;  // clean up memory leak;
+				this.animation = null;
 			}
 			return this;
 		};

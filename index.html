@@ -71,8 +71,9 @@
 			tagCloud2 = new TagCloud(
 				document.getElementById("tagCloud2"),
 				tags2,
-				parseFloat(document.getElementById("tagCloud2").clientWidth) - 4,
-				parseFloat(document.getElementById("tagCloud2").clientWidth) - 4
+				parseFloat(document.getElementById("tagCloud2").clientWidth),
+				parseFloat(document.getElementById("tagCloud2").clientWidth),
+				{ overwrite: true }
 			);
 			tagCloud2.Animate();
 			//console.timeEnd("TagCloud2");
@@ -98,26 +99,22 @@
 	</script>
 
 	<style type="text/css">
-		body
-		{
-			background-color: black;
-		}
 		#tagCloud1
 		{
-			padding: 100px;
+			padding: 25px;
 		}
 		#tagCloud2
 		{
 			border-bottom: 1px solid silver;
 			margin-bottom: 5px;
-			padding: 2px 2px 5px 2px;
+			padding-bottom: 5px;
 			width: 100%;  /* needed for IE to calc width */
 		}
 		#widget
 		{
 			border: 1px solid silver;
-			margin: 10px;
-			padding: 10px;
+			margin: 5px;
+			padding: 5px;
 			text-align:center;
 			width: 240px;
 		}
@@ -170,10 +167,24 @@
 	</style>
 </head>
 <body>
+	<h1>JS-Cumulus - WP-Cumulus in JavaScript <small>v1</small></h1>
+	<p>Made by <a href="http://www.jeroenvanwarmerdam.nl">jerone</a></p>
+	<p></p>
+	<p>Check <a href="http://jeroenvanwarmerdam.nl/content/resources/javascript/jscumulus/jscumulus.aspx">this page</a> for more information.</p>
+
+	<hr />
+	
+	<h2>Example 1</h2>
+	<p>A simple tagcloud with size 400 x 400.</p>
 	<div id="tagCloud1"></div>
+
+	<hr />
+	
+	<h2>Example 2</h2>
+	<p>Another example tagcloud with the size from it's parent. An extra option is added to override the existing HTML. The buttons below controls the tagcloud manually.</p>
 	<div id="widget">
 		<h4>Tag Cloud</h4>
-		<div id="tagCloud2"></div>
+		<div id="tagCloud2">This text should be overriden!</div>
 		<input type="button" id="btn_tagcloud_reset" value="Reset" />
 		<input type="button" id="btn_tagcloud_update" value="Spin" />
 		<input type="button" id="btn_tagcloud_pause" value="Pause" />

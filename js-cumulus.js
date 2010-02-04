@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *			radius		=> Float		=> Radius (optional)(default: Math.min(width, height) / 4);
 *			fontMin		=> Float		=> Font size for smallest tag in pixels (optional)(default: 10);
 *			fontMax		=> Float		=> Font size for biggest tag in pixels (optional)(default: 24);
+*			overwrite	=> Boolean		=> Override any existing HTML in the element (optional)(default: false);
 *
 *	TagCloud functions:
 *		Distribute	=> Function	=> Will distribute tags in tagcloud on page (optional if element in TagCloud function is defined);
@@ -76,7 +77,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		FontMax: 24, 			// Font size for biggest tag in pixels;
 		Depth: 150, 			// Perspective depth;
 		AnimationTime: 1, 		// Animation time and interval, the less it is the faster the animation is;
-		HoverStop: true			// Stop animation when tag is hovered;
+		HoverStop: true, 		// Stop animation when tag is hovered;
+		OverWrite: false		// Override any existing HTML in the element;
 	};
 
 	/* Variables */
@@ -310,6 +312,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		};
 		this.radius = options.radius || Math.min(this.size.width, this.size.height) / 4;
 		this.consistent = options.consistent !== undefined ? !!options.consistent : Defaults.Consistent;
+		this.overwrite = options.overwrite !== undefined ? !!options.overwrite : Defaults.OverWrite;
 		this.items = tags && tags.length && tags.slice(0) || (function() {  // slice(0) to clone the tags;
 			var i = 50, ii = 0, tags = [];
 			for(; i >= ii; --i) {
@@ -330,6 +333,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			var element = element || this.element || _doc.body,
 				container = _doc.createElement("ul"),
 				i = this.items.length - 1, ii = 0, item;
+			if(this.overwrite) {
+				while(element.firstChild) {
+					element.removeChild(element.firstChild);
+				}
+			}
 			for(; i >= ii; --i) {
 				item = this.items[i];
 				if(item instanceof Tag && item.title) {  // only Tag class allowed with at least titles;

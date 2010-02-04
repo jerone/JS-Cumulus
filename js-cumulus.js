@@ -220,17 +220,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		this.element.style.height = this.size.height + "px";
 		this.element.style.display = "block";
 
-		this.Activate = function() {
+		this.Update = function() {  // Attractor's position can be moved, so position needs to be updated;
 			this.position = new Vector({
 				x: this.element.offsetLeft,
 				y: this.element.offsetTop
 			});
-
+			return this;
+		};
+		this.Activate = function() {
 			var self = this;
 			Event.Add(this.element, "mousemove", function(event) {
 				return function(event) {
 					if(!parent.active) { parent.Animate(); }
 					if(!(Defaults.HoverStop && !this.active)) {
+						this.Update();
 						this.mouse.set(
 							((-event.pageY + this.position.y) * 2 / this.size.height + 1) * 1.8,
 							((event.pageX - this.position.x) * 2 / this.size.width - 1) * 1.8
@@ -340,11 +343,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			element.appendChild(this.attractor.element);
 			this.attractor.Activate();  // only activate after appended to DOM;
 
-			this.position = new Vector({  // only calculate tagcloud position with attractor position after it's appended to DOM;
-				x: this.size.width / 2 + this.attractor.position.x,
-				y: this.size.height / 2 + this.attractor.position.y
-			});
-
 			container = null;
 
 			var p = 0, t = 0,
@@ -361,23 +359,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				);
 			}
 			p = t = tags = i = l = radius = null;
+
 			this.Update();
 			return this;
 		};
 
 		this.Update = function(delta) {
-			var delta = delta || new Vector(),
-				tags = this.items,
+			var tags = this.items,
+				attractor = this.attractor.Update(),
+				delta = delta || new Vector(),
 				deltA = delta.x || 0, deltB = delta.y || 0,
 				sinA = Sine(deltA), cosA = Cosine(deltA),
 				sinB = Sine(deltB), cosB = Cosine(deltB),
 				fontRange = this.font.max - this.font.min,
 				i = 0, l = tags.length;
+			this.position = new Vector({
+				x: this.size.width / 2 + attractor.position.x,
+				y: this.size.height / 2 + attractor.position.y
+			});
 			for(; i < l; i++) {
 				var tag = tags[i],
 					pos = tag.position,
-					li = tag.element,
-					aa = li.firstChild,
+					li = tag.element, aa = li.firstChild,
 					x = pos.x * cosB + (pos.y * sinA + pos.z * cosA) * sinB,
 					y = pos.y * cosA + pos.z * (-sinA),
 					z = pos.x * (-sinB) + (pos.y * sinA + pos.z * cosA) * cosB,
@@ -388,7 +391,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				li.style.left = (this.position.x + x * per) - (li.clientWidth / 2) + "px";
 				li.style.top = (this.position.y + y * per) - (li.clientHeight / 2) + "px";
 			}
-			delta = tags = deltA = deltB = sinA = cosA = sinB = cosB = fontRange = i = l = null;
+			tags = attractor = delta = deltA = deltB = sinA = cosA = sinB = cosB = fontRange = i = l = null;
 			return this;
 		};
 

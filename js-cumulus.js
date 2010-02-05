@@ -4,8 +4,8 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 05-02-2010 13:00:00
-@version 0.2
+@date 05-02-2010 14:00:00
+@version 0.2.1
 
 Copyright 2010, Jeroen van Warmerdam
 
@@ -423,6 +423,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		};
 
 		this.Animate = function(delta) {
+			if(delta) { this.Stop(); }  // if delta exist a new animation is created and the old one should be stopped;
 			this.active = true;
 			this.delta = delta || this.delta || new Vector();
 			var self = this;

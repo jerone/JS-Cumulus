@@ -4,8 +4,8 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 18.01.2010 00:15:00
-@version 0.1
+@date 05-02-2010 13:00:00
+@version 0.2
 
 Copyright 2010, Jeroen van Warmerdam
 

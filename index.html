@@ -1,27 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 	<title>JS-Cumulus => WP-Cumulus in Javascript</title>
 
-	<script type="text/javascript">
-		//function Tag(nr) { alert("test: " + nr); }
-		//Tag(1);
-	</script>
-
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
-
 	<script type="text/javascript" src="js-cumulus.js"></script>
 
 	<script type="text/javascript">
-		jQuery.noConflict();
-
 		//JSCumulus.noConflict();
-		//Tag(2);
-
-		var tagCloud1, tagCloud2;
 
 		/* TagCloud 1 */
-		//console.time("TagCloud1");
+		/* DEBUG */ window.console && console.time && console.time("TagCloud1");
 		var tags = [
 			new Tag("JS-Cumulus", 100),
 			new Tag("WP-Cumulus", 80, "http://www.roytanck.com/2008/05/19/how-to-repurpose-my-tag-cloud-flash-movie/"),
@@ -41,64 +29,11 @@
 			new Tag("Tag Cloud"),
 			new Tag("<img src='icon-tagcloud.gif' />")
 		];
-		tagCloud1 = new TagCloud(tags, 400, 400);
-		//console.timeEnd("TagCloud1");
-
-
-		jQuery(function() {
-
-			/* TagCloud 2 */
-			//console.time("TagCloud2");
-			var tags2 = [
-				new Tag("JS-Cumulus", 100),
-				new Tag("WP-Cumulus", 80, "http://www.roytanck.com/2008/05/19/how-to-repurpose-my-tag-cloud-flash-movie/"),
-				new Tag("Jeroen van Warmerdam", 60, "http://www.jeroenvanwarmerdam.nl"),
-				new Tag("Stratus", "http://student.agh.edu.pl/~fatyga/repos/stratus/example.php"),
-				new Tag("JavaScript"),
-				new Tag("Object Oriented"),
-				new Tag("XB (Cross Browser)"),
-				new Tag("Firefox", 5),
-				new Tag("Chrome", 4),
-				new Tag("Safari", 3),
-				new Tag("Opera", 2),
-				new Tag("IE", 1),
-				new Tag("<del>No flash</del>"),
-				new Tag("<del>No JavaScript library</del>"),
-				new Tag("Tag"),
-				new Tag("Tag Cloud"),
-				new Tag("<img src='icon-tagcloud.gif' alt='tagcloud' />")
-			];
-			tagCloud2 = new TagCloud(
-				document.getElementById("tagCloud2"),
-				tags2,
-				parseFloat(document.getElementById("tagCloud2").clientWidth),
-				parseFloat(document.getElementById("tagCloud2").clientWidth),
-				{ overwrite: true }
-			);
-			tagCloud2.Animate();
-			//console.timeEnd("TagCloud2");
-
-
-			/* buttons */
-			jQuery("#btn_tagcloud_reset").click(function() {
-				tagCloud2.Distribute();
-			});
-			jQuery("#btn_tagcloud_update").click(function() {
-				tagCloud2.Animate(new Vector(-2, -2, 0));
-			});
-			var x = 0;
-			jQuery("#btn_tagcloud_pause").click(function() {
-				tagCloud2[x % 2 ? "Animate" : "Pause"]();
-				jQuery(this).val(x % 2 ? "Pause" : "Resume");
-				x++;
-			});
-			jQuery("#btn_tagcloud_stop").click(function() {
-				tagCloud2.Stop();
-			});
-		});
+		var tagCloud1 = new TagCloud(tags, 400, 400);
+		/* DEBUG */ window.console && console.time && console.timeEnd("TagCloud1");
 	</script>
 
-	<style type="text/css">
+	<style>
 		#tagCloud1
 		{
 			padding: 25px;
@@ -167,10 +102,11 @@
 	</style>
 </head>
 <body>
-	<h1>JS-Cumulus - WP-Cumulus in JavaScript <small>v1</small></h1>
+	<h1>JS-Cumulus => WP-Cumulus in JavaScript <small>v1</small></h1>
 	<p>Made by <a href="http://www.jeroenvanwarmerdam.nl">jerone</a></p>
 	<p></p>
-	<p>Check <a href="http://jeroenvanwarmerdam.nl/content/resources/javascript/jscumulus/jscumulus.aspx">this page</a> for more information.</p>
+	<p>Check the source for code examples.<br/>
+	And check <a href="http://jeroenvanwarmerdam.nl/content/resources/javascript/jscumulus/jscumulus.aspx">this page</a> for more information.</p>
 
 	<hr />
 	
@@ -178,12 +114,16 @@
 	<p>A simple tagcloud with size 400 x 400.</p>
 	<div id="tagCloud1"></div>
 
+	<script type="text/javascript">
+		tagCloud1.Distribute(document.getElementById("tagCloud1")).Animate();
+	</script>
+
 	<hr />
 	
 	<h2>Example 2</h2>
 	<p>Another example tagcloud with the size from it's parent. An extra option is added to override the existing HTML. The buttons below controls the tagcloud manually.</p>
 	<div id="widget">
-		<h4>Tag Cloud</h4>
+		<h4>Tag Cloud <small id="TagCloud2X_fps" /></h4>
 		<div id="tagCloud2">This text should be overriden!</div>
 		<input type="button" id="btn_tagcloud_reset" value="Reset" />
 		<input type="button" id="btn_tagcloud_update" value="Spin" />
@@ -192,7 +132,54 @@
 	</div>
 
 	<script type="text/javascript">
-		tagCloud1.Distribute(document.getElementById("tagCloud1")).Animate();
+		/* TagCloud 2 */
+		/* DEBUG */ window.console && console.time && console.time("TagCloud2");
+		var tags2 = [
+			new Tag("JS-Cumulus", 100),
+			new Tag("WP-Cumulus", 80, "http://www.roytanck.com/2008/05/19/how-to-repurpose-my-tag-cloud-flash-movie/"),
+			new Tag("Jeroen van Warmerdam", 60, "http://www.jeroenvanwarmerdam.nl"),
+			new Tag("Stratus", "http://student.agh.edu.pl/~fatyga/repos/stratus/example.php"),
+			new Tag("JavaScript"),
+			new Tag("Object Oriented"),
+			new Tag("XB (Cross Browser)"),
+			new Tag("Firefox", 5),
+			new Tag("Chrome", 4),
+			new Tag("Safari", 3),
+			new Tag("Opera", 2),
+			new Tag("IE", 1),
+			new Tag("<del>No flash</del>"),
+			new Tag("<del>No JavaScript library</del>"),
+			new Tag("Tag"),
+			new Tag("Tag Cloud"),
+			new Tag("<img src='icon-tagcloud.gif' alt='tagcloud' />")
+		];
+		var tagCloud2 = new TagCloud(
+			document.getElementById("tagCloud2"),
+			tags2,
+			parseFloat(document.getElementById("tagCloud2").clientWidth),
+			parseFloat(document.getElementById("tagCloud2").clientWidth),
+			{ overwrite: true, id: "TagCloud2X" }
+		);
+		tagCloud2.Animate();
+		/* DEBUG */ window.console && console.time && console.timeEnd("TagCloud2");
+
+
+		/* buttons */
+		document.getElementById("btn_tagcloud_reset").onclick = function() {
+			tagCloud2.Distribute();
+		};
+		document.getElementById("btn_tagcloud_update").onclick = function() {
+			tagCloud2.Animate(new Vector(-2, -2, 0));
+		};
+		var x = 0;
+		document.getElementById("btn_tagcloud_pause").onclick = function() {
+            var running = x++ % 2;
+			tagCloud2[running ? "Animate" : "Pause"]();
+			this.value = running ? "Pause" : "Resume";
+		};
+		document.getElementById("btn_tagcloud_stop").onclick = function() {
+			tagCloud2.Stop();
+		};
 	</script>
 
 </body>

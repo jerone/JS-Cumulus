@@ -4,7 +4,7 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 05-02-2010 14:00:00
+@date 05-05-2011 20:00:00
 @version 0.2.1
 
 Copyright 2010, Jeroen van Warmerdam
@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *		ADD: Z-sorting;
 *		ADD: Slow down more on tag mouse focus;
 *		ADD: Calculating the color instead using the Opacity property;
+*		ADD: touch events;
 \*/
 
 /*\
@@ -51,10 +52,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *		Distribute	=> Function	=> Will distribute tags in tagcloud on page (optional if element in TagCloud function is defined);
 *			element	=> Element	=> Element to append TagCloud, will override argument from TagCloud function (optional)(default: document.body);
 *		Animate		=> Function	=> Will animate the tagcloud (mandatory);
-*			delta	=> Vector	=> 
+*			delta	=> Vector	=>
 *		Pause		=> Function	=> Will temporary pause the animation, to resume use Animate function (optional);
 *		Stop		=> Function	=> Will immediately stop the animation, to start use Animate function (optional);
-*		Update		=> Function	=> 
+*		Update		=> Function	=>
 *
 *	Tag arguments:
 *		title	=> String			=> Title of the tag;
@@ -62,29 +63,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *		url		=> String			=> Link of the tag (optional)(default "#");
 \*/
 
-(function(_window, undefined) {
+(function(_win, _doc, undefined) {
 
 	/* Defaults */
 	var Defaults = {
-		ID: "tagCloud", 		// Tagcloud id;
-		Class: "tagCloud", 		// Tagcloud class;
-		Width: 400, 			// Tagcloud width in pixels;
-		Heigth: 400, 			// Tagcloud height in pixels;
-		Consistent: true, 		// Devide tags evenly;
-		Rank: 30, 				// Tag importance in procents;
-		Url: "#", 				// Tag url;
-		FontMin: 10, 			// Font size for smallest tag in pixels;
-		FontMax: 24, 			// Font size for biggest tag in pixels;
-		Depth: 150, 			// Perspective depth;
-		AnimationTime: 1, 		// Animation time and interval, the less it is the faster the animation is;
-		HoverStop: true, 		// Stop animation when tag is hovered;
-		OverWrite: false		// Override any existing HTML in the element;
+		ID: "tagCloud",         // String        => Tagcloud id;
+		Class: "tagCloud",      // String        => Tagcloud class;
+		Width: 400,             // Integer       => Tagcloud width in pixels;
+		Heigth: 400,            // Integer       => Tagcloud height in pixels;
+		Consistent: true,       // Boolean       => Devide tags evenly;
+		Rank: 30,               // Integer 0-100 => Tag importance in procents;
+		Url: "#",               // String URL    => Tag url;
+		FontMin: 10,            // Float         => Font size for smallest tag in pixels;
+		FontMax: 24,            // Float         => Font size for biggest tag in pixels;
+		Depth: 150,             // Integer       => Perspective depth;
+		AnimationTime: 1,       // Integer       => Animation time and interval, the less it is, the faster the animation is;
+		HoverStop: 0.98,        // Float         => Stop animation when tag is hovered;
+		OverWrite: false        // Boolean       => Override any existing HTML in the element;
 	};
 
 	/* Variables */
-	var _win = _window,
-		_doc = _win.document,
-		_TagCloud = _win.TagCloud,
+	var _TagCloud = _win.TagCloud,
 		_Tag = _win.Tag,
 		_Vector = _win.Vector,
 		_Surface = _win.Surface,
@@ -112,7 +111,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				cosine[i] = Math.cos(i / 10 * Radian);
 				i++;
 			}
-			return function(angle) { return cosine[Math.round(Math.abs(angle) * 10) % total]; };
+			return function Cosine(angle) { return cosine[Math.round(Math.abs(angle) * 10) % total]; };
 		})(),
 		Event = {
 			Add: (function() {
@@ -121,7 +120,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 						fn = Event.Fix.call(this, type === "mouseenter" || type === "mouseleave" ? Event.mouseEnter(fn) : fn);
 						type = type === "mouseenter" && "mouseover" || type === "mouseleave" && "mouseout" || type;
 						obj.addEventListener(type, fn, false);
-						return function() {
+						return function Add() {
 							obj.removeEventListener(type, fn, false);
 							return true;
 						};
@@ -130,7 +129,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					return function(obj, type, fn) {
 						fn = Event.Fix.call(this, fn);
 						obj.attachEvent("on" + type, fn);
-						return function() {
+						return function Add() {
 							obj.detachEvent("on" + type, fn);
 							return true;
 						};
@@ -142,10 +141,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					if(!event.target) { event.target = event.srcElement || _doc; }
 					if(event.target.nodeType === 3) { event.target = event.target.parentNode; }
 					if(!event.relatedTarget && event.fromElement) { event.relatedTarget = event.fromElement === event.target ? event.toElement : event.fromElement; }
-					if(event.pageX == null && event.clientX != null) {
+					if(event.pageX === null && event.clientX !== null) {
 						var docE = _doc.documentElement, body = _doc.body;
 						event.pageX = event.clientX + (docE && docE.scrollLeft || body && body.scrollLeft || 0) - (docE && docE.clientLeft || body && body.clientLeft || 0);
-						event.pageY = event.clientY + (docE && docE.scrollTop || body && body.scrollTop || 0) - (docE && docE.clientTop || body && body.clientTop || 0);
+						event.pageY = event.clientY + (docE && docE.scrollTop  || body && body.scrollTop  || 0) - (docE && docE.clientTop  || body && body.clientTop  || 0);
 					}
 					fn.call(this, event);
 				};
@@ -156,7 +155,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 					while(child && child !== parent) { child = child.parentNode; }
 					return child === parent;
 				};
-				return function(event) {
+				return function mouseEnter(event) {
 					var relTarget = event.relatedTarget;
 					if(this === relTarget || isAChildOf(this, relTarget)) { return; }
 					fn.call(this, event);
@@ -193,7 +192,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	/** Surface Class **/
 	var Surface = function(width, height) {
 		this.set = function(width, height) {
-			this.width = width || 0;
+			this.width  = width  || 0;
 			this.height = height || 0;
 		};
 
@@ -211,7 +210,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		this.mouse = new Vector();
 		this.position = new Vector();
 		this.size = new Surface({
-			width: parent.size.width || Defaults.Width / 2,
+			width:  parent.size.width  || Defaults.Width  / 2,
 			height: parent.size.height || Defaults.Heigth / 2
 		});
 
@@ -234,11 +233,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			Event.Add(this.element, "mousemove", function(event) {
 				return function(event) {
 					if(!parent.active) { parent.Animate(); }
-					if(!(Defaults.HoverStop && !this.active)) {
+					if(!(!!Defaults.HoverStop && !this.active)) {
 						this.Update();
 						this.mouse.set(
 							((-event.pageY + this.position.y) * 2 / this.size.height + 1) * 1.8,
-							((event.pageX - this.position.x) * 2 / this.size.width - 1) * 1.8
+							(( event.pageX - this.position.x) * 2 / this.size.width  - 1) * 1.8
 						);
 					}
 				} .call(self, event);
@@ -273,6 +272,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		li.style.position = "absolute";
 		li.appendChild(aa);
 		this.element = li;
+
 		li = aa = null;
 
 		this.Activate = function(attractor) {
@@ -298,12 +298,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			options = arguments[4];
 		}
 
-		var options = options || isObject(height) && height || isObject(width) && width || {};
+		options = options || isObject(height) && height || isObject(width) && width || {};
+
+		this.fps = {
+			timer: null,
+			elm: null,
+			i: 0
+		};
 
 		this.active = false;
 		this.delta = new Vector(-2, -2);
 		this.size = new Surface({
-			width: parseFloat(!!parseFloat(width) && width || !!parseFloat(options.width) && options.width || Defaults.Width),
+			width:  parseFloat(!!parseFloat(width)  && width  || !!parseFloat(options.width)  && options.width  || Defaults.Width),
 			height: parseFloat(!!parseFloat(height) && height || !!parseFloat(options.height) && options.height || width || Defaults.Height)
 		});
 		this.font = {
@@ -312,7 +318,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		};
 		this.radius = options.radius || Math.min(this.size.width, this.size.height) / 4;
 		this.consistent = options.consistent !== undefined ? !!options.consistent : Defaults.Consistent;
-		this.overwrite = options.overwrite !== undefined ? !!options.overwrite : Defaults.OverWrite;
+		this.overwrite  = options.overwrite  !== undefined ? !!options.overwrite  : Defaults.OverWrite;
 		this.items = tags && tags.length && tags.slice(0) || (function() {  // slice(0) to clone the tags;
 			var i = 50, ii = 0, tags = [];
 			for(; i >= ii; --i) {
@@ -330,15 +336,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		options = null;
 
 		this.Distribute = function(element) {
-			var element = element || this.element || _doc.body,
-				container = _doc.createElement("ul"),
-				i = this.items.length - 1, ii = 0, item;
+			element = element || this.element || _doc.body;
+			var container = _doc.createElement("ul"),
+				i = this.items.length - 1, l = 0, item;
 			if(this.overwrite) {
 				while(element.firstChild) {
 					element.removeChild(element.firstChild);
 				}
 			}
-			for(; i >= ii; --i) {
+			for(; i >= l; --i) {
 				item = this.items[i];
 				if(item instanceof Tag && item.title) {  // only Tag class allowed with at least titles;
 					container.appendChild(item.element);
@@ -351,55 +357,69 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			element.appendChild(this.attractor.element);
 			this.attractor.Activate();  // only activate after appended to DOM;
 
-			container = null;
+			container = i = l = null;
 
 			var p = 0, t = 0,
 				tags = this.items,
-				i = 0, l = tags.length,
+				ii = 0, ll = tags.length,
 				radius = this.radius;
-			for(; i < l; i++) {
-				p = this.consistent ? Math.acos(-1 + (2 * i) / l) : Math.random() * (Math.PI);
-				t = this.consistent ? Math.sqrt(l * Math.PI) * p : Math.random() * (2 * Math.PI);
-				tags[i].position.set(
+			for(; ii < ll; ii++) {
+				p = this.consistent ? Math.acos(-1 + (2 * ii) / ll) : Math.random() * (Math.PI);
+				t = this.consistent ? Math.sqrt(ll * Math.PI) * p : Math.random() * (2 * Math.PI);
+				tags[ii].position.set(
 					radius * Math.sin(p) * Math.cos(t),
 					radius * Math.sin(p) * Math.sin(t),
 					radius * Math.cos(p)
 				);
 			}
-			p = t = tags = i = l = radius = null;
+
+			p = t = tags = ii = ll = radius = null;
+
+			this.fps.elm = _doc.getElementById(this.attractor.id + "_fps");
 
 			this.Update();
 			return this;
 		};
 
 		this.Update = function(delta) {
+			this.fps.timer = new Date() * 1;
+
+			delta = delta || new Vector();
 			var tags = this.items,
 				attractor = this.attractor.Update(),
-				delta = delta || new Vector(),
 				deltA = delta.x || 0, deltB = delta.y || 0,
 				sinA = Sine(deltA), cosA = Cosine(deltA),
 				sinB = Sine(deltB), cosB = Cosine(deltB),
 				fontRange = this.font.max - this.font.min,
 				i = 0, l = tags.length;
+
 			this.position = new Vector({
-				x: this.size.width / 2 + attractor.position.x,
+				x: this.size.width  / 2 + attractor.position.x,
 				y: this.size.height / 2 + attractor.position.y
 			});
+
 			for(; i < l; i++) {
 				var tag = tags[i],
 					pos = tag.position,
 					li = tag.element, aa = li.firstChild,
-					x = pos.x * cosB + (pos.y * sinA + pos.z * cosA) * sinB,
+					xz = pos.y * sinA + pos.z * cosA,
+					x = pos.x * cosB + xz * sinB,
 					y = pos.y * cosA + pos.z * (-sinA),
-					z = pos.x * (-sinB) + (pos.y * sinA + pos.z * cosA) * cosB,
+					z = pos.x * (-sinB) + xz * cosB,
 					per = Defaults.Depth / (Defaults.Depth + z);
+
 				pos.set(x, y, z);
+
 				aa.style.opacity = Math.max(per - 0.7, 0) / 0.5 + 0.2;
 				aa.style.fontSize = tag.rank * per * fontRange + this.font.min + "px";
 				li.style.left = (this.position.x + x * per) - (li.clientWidth / 2) + "px";
 				li.style.top = (this.position.y + y * per) - (li.clientHeight / 2) + "px";
 			}
+
 			tags = attractor = delta = deltA = deltB = sinA = cosA = sinB = cosB = fontRange = i = l = null;
+
+			if(this.fps.elm){ this.fps.elm.innerHTML = parseInt(++this.fps.i / ((new Date() * 1) - this.fps.timer), 10) + " fps"; }
+
 			return this;
 		};
 
@@ -408,17 +428,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 				this.active = false;
 				_win.clearInterval(this.animation);
 				this.animation = null;
+				this.fps.timer = null;
+				this.fps.i = 0;
+				if(this.fps.elm){ this.fps.elm.innerHTML = "# fps"; }
 			}
 			return this;
 		};
 
 		this.Stop = function() {
 			this.delta = new Vector();  // reset the delta to 0, 0;
-			if(this.animation) {
-				this.active = false;
-				_win.clearInterval(this.animation);
-				this.animation = null;
-			}
+			this.Pause();  // same effect;
 			return this;
 		};
 
@@ -428,12 +447,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			this.delta = delta || this.delta || new Vector();
 			var self = this;
 			this.animation = _win.setInterval(function() {
-				return function() {
-					if(this.attractor.active) {
-						this.delta = this.attractor.mouse;
-					} else {
-						this.delta = this.delta.Multiply(0.98);
-					}
+				return function animation() {
+					this.delta = this.attractor.active ? this.attractor.mouse : this.delta.Multiply(Defaults.HoverStop);
 					if(this.delta.Done()) {
 						this.Update(this.delta);
 					} else {
@@ -450,21 +465,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		return this;
 	};
 
-	_win.JSCumulus = JSCumulus = {};
 	_win.TagCloud = TagCloud;
 	_win.Tag = Tag;
 	_win.Vector = Vector;
 	_win.Surface = Surface;
 
-	JSCumulus.noConflict = function() {
-		_win.TagCloud = _TagCloud;
-		_win.JSCumulus.TagCloud = TagCloud;
-		_win.Tag = _Tag;
-		_win.JSCumulus.Tag = Tag;
-		_win.Vector = _Vector;
-		_win.JSCumulus.Vector = Vector;
-		_win.Surface = _Surface;
-		_win.JSCumulus.Surface = Surface;
+	_win.JSCumulus = {
+		TagCloud: TagCloud,
+		Tag: Tag,
+		Vector: Vector,
+		Surface: Surface,
+		noConflict: function() {
+			_win.TagCloud = _TagCloud;
+			_win.Tag = _Tag;
+			_win.Vector = _Vector;
+			_win.Surface = _Surface;
+
+			return {
+				TagCloud: TagCloud,
+				Tag: Tag,
+				Vector: Vector,
+				Surface: Surface
+			};
+		}
 	};
 
-})(window);
+})(window, window.document);

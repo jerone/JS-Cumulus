@@ -4,10 +4,10 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 05-05-2011 20:00:00
-@version 0.2.1
+@date 18-12-2011 14:00
+@version 0.2.2
 
-Copyright 2010, Jeroen van Warmerdam
+Copyright 2010 - 2011, Jeroen van Warmerdam
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

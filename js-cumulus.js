@@ -25,12 +25,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*\
 *	TODO:
-*		IDEA: Mouse panning, zooming;
+*		ADD: Mouse panning, zooming;
 *		ADD: Documentation;
 *		ADD: Z-sorting;
 *		ADD: Slow down more on tag mouse focus;
 *		ADD: Calculating the color instead using the Opacity property;
-*		ADD: touch events;
+*		ADD: Style properties for tags;
+*		ADD: Touch events;
+*		ADD: Always on;
 \*/
 
 /*\
@@ -79,7 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		Depth: 150,             // Integer       => Perspective depth;
 		AnimationTime: 1,       // Integer       => Animation time and interval, the less it is, the faster the animation is;
 		HoverStop: 0.98,        // Float         => Stop animation when tag is hovered;
-		OverWrite: false        // Boolean       => Override any existing HTML in the element;
+		OverWrite: false        // Boolean       => Override any existing HTML in the tagcloud element;
 	};
 
 	/* Variables */
@@ -221,13 +223,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		this.element.style.height = this.size.height + "px";
 		this.element.style.display = "block";
 
-		this.Update = function() {  // Attractor's position can be moved, so position needs to be updated;
-			this.position = new Vector({
-				x: this.element.offsetLeft,
-				y: this.element.offsetTop
-			});
-			return this;
-		};
 		this.Activate = function() {
 			var self = this;
 			Event.Add(this.element, "mousemove", function(event) {
@@ -250,7 +245,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			});
 			return this;
 		};
-		return this;
+
+		this.Update = function() {  // Attractor's position can be moved, so position needs to be updated;
+			this.position = new Vector({
+				x: this.element.offsetLeft,
+				y: this.element.offsetTop
+			});
+			return this;
+		};
 	};
 
 
@@ -273,8 +275,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		li.appendChild(aa);
 		this.element = li;
 
-		li = aa = null;
-
 		this.Activate = function(attractor) {
 			Event.Add(this.element, "mouseenter", function() {
 				attractor.active = false;
@@ -282,6 +282,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			Event.Add(this.element, "mouseleave", function() {
 				attractor.active = true;
 			});
+			return this;
+		};
+
+		this.Update = function(delta, offset, fontMin, fontMax){
+			delta = delta || new Vector();
+			offset = offset || new Vector();
+
+			var pos = this.position,
+				deltA = delta.x || 0, deltB = delta.y || 0,
+				sinA = Sine(deltA), cosA = Cosine(deltA),
+				sinB = Sine(deltB), cosB = Cosine(deltB),
+				xz = pos.y * sinA + pos.z * cosA,
+				x = pos.x * cosB + xz * sinB,
+				y = pos.y * cosA + pos.z * (-sinA),
+				z = pos.x * (-sinB) + xz * cosB,
+				per = Defaults.Depth / (Defaults.Depth + z),
+				fontRange = fontMax - fontMin;
+
+			pos.set(x, y, z);
+
+			aa.style.opacity = Math.max(per - 0.7, 0) / 0.5 + 0.2;
+			aa.style.fontSize = this.rank * per * fontRange + fontMin + "px";
+			li.style.left = (offset.x + x * per) - (li.clientWidth / 2) + "px";
+			li.style.top = (offset.y + y * per) - (li.clientHeight / 2) + "px";
+			
+			pos = deltA = deltB = sinA = cosA = sinB = cosB = xz = x = y = z = per = fontRange = null;
+			
 			return this;
 		};
 	};
@@ -385,13 +412,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			this.fps.timer = new Date() * 1;
 
 			delta = delta || new Vector();
-			var tags = this.items,
-				attractor = this.attractor.Update(),
-				deltA = delta.x || 0, deltB = delta.y || 0,
-				sinA = Sine(deltA), cosA = Cosine(deltA),
-				sinB = Sine(deltB), cosB = Cosine(deltB),
-				fontRange = this.font.max - this.font.min,
-				i = 0, l = tags.length;
+			
+			var attractor = this.attractor.Update(),
+				i = 0, l = this.items.length;
 
 			this.position = new Vector({
 				x: this.size.width  / 2 + attractor.position.x,
@@ -399,24 +422,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			});
 
 			for(; i < l; i++) {
-				var tag = tags[i],
-					pos = tag.position,
-					li = tag.element, aa = li.firstChild,
-					xz = pos.y * sinA + pos.z * cosA,
-					x = pos.x * cosB + xz * sinB,
-					y = pos.y * cosA + pos.z * (-sinA),
-					z = pos.x * (-sinB) + xz * cosB,
-					per = Defaults.Depth / (Defaults.Depth + z);
-
-				pos.set(x, y, z);
-
-				aa.style.opacity = Math.max(per - 0.7, 0) / 0.5 + 0.2;
-				aa.style.fontSize = tag.rank * per * fontRange + this.font.min + "px";
-				li.style.left = (this.position.x + x * per) - (li.clientWidth / 2) + "px";
-				li.style.top = (this.position.y + y * per) - (li.clientHeight / 2) + "px";
+				this.items[i].Update(delta, this.position, this.font.min, this.font.max);
 			}
 
-			tags = attractor = delta = deltA = deltB = sinA = cosA = sinB = cosB = fontRange = i = l = null;
+			delta = attractor = i = l = null;
 
 			if(this.fps.elm){ this.fps.elm.innerHTML = parseInt(++this.fps.i / ((new Date() * 1) - this.fps.timer), 10) + " fps"; }
 
@@ -462,7 +471,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		if(this.element) {
 			this.Distribute(this.element);
 		}
-		return this;
 	};
 
 	_win.TagCloud = TagCloud;

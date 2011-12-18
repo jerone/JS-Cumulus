@@ -1,4 +1,152 @@
-= null && event.clientX !== null) {
+/*\
+JS-Cumulus - WP-Cumulus in JavaScript (codenamed jscumulus)
+Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
+Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
+
+@author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
+@date 18-12-2011 14:00
+@version 0.2.2
+
+Copyright 2010 - 2011, Jeroen van Warmerdam
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+\*/
+
+/*\
+*	TODO:
+*		ADD: Mouse panning, zooming;
+*		ADD: Documentation;
+*		ADD: Z-sorting;
+*		ADD: Slow down more on tag mouse focus;
+*		ADD: Calculating the color instead using the Opacity property;
+*		ADD: Style properties for tags;
+*		ADD: Touch events;
+*		ADD: Always on;
+*		FIX: Split hovering speed and blur speed;
+*		ADD: Specify beginning origin; 
+\*/
+
+/*\
+*	TagCloud arguments:
+*		element     => Element          => Element to append TagCloud (optional)(default: document.body);
+*		tags        => Array [Tag,...]  => List of tags (mandatory);
+*		width       => Float            => Width of container (optional)(default: 400);
+*		height      => Float            => Height of container (optional)(default: same as width);
+*		options     => Object           => Extra settings (optional);
+*			id          => String       => Id of the wrapper (optional)(default: "tagCloud1234");
+*			className   => String       => Class of the wrapper (optional)(default: "tagCloud");
+*			consistent  => Boolean      => Devide tags evenly (optional)(default: true);
+*			radius      => Float        => Radius (optional)(default: Math.min(width, height) / 4);
+*			fontMin     => Float        => Font size for smallest tag in pixels (optional)(default: 10);
+*			fontMax     => Float        => Font size for biggest tag in pixels (optional)(default: 24);
+*			overwrite   => Boolean      => Override any existing HTML in the element (optional)(default: false);
+*
+*	TagCloud functions:
+*		Distribute  => Function         => Will distribute tags in tagcloud on page (optional if element in TagCloud function is defined);
+*			element     => Element      => Element to append TagCloud, will override argument from TagCloud function (optional)(default: document.body);
+*		Animate     => Function         => Will animate the tagcloud (mandatory);
+*			delta       => Vector       => Location in which the tagcloud will rotate (optional);
+*		Pause       => Function         => Will temporary pause the animation, to resume use Animate function (optional);
+*		Stop        => Function         => Will immediately stop the animation, to start use Animate function (optional);
+*		Update      => Function         => Will reset the direction to a new location (optional);
+*			delta       => Vector       => Location in which the tagcloud will rotate (optional);
+*
+*	Tag arguments:
+*		title       => String           => Title of the tag;
+*		rank        => Integer 0-100    => Importance of the tag (optional)(default: 30);
+*		url         => String           => Link of the tag (optional)(default "#");
+\*/
+
+(function(_win, _doc, undefined) {
+
+	/* Defaults */
+	var Defaults = {
+		ID: "tagCloud",         // String        => Tagcloud id;
+		Class: "tagCloud",      // String        => Tagcloud class;
+		Width: 400,             // Integer       => Tagcloud width in pixels;
+		Heigth: 400,            // Integer       => Tagcloud height in pixels;
+		Consistent: true,       // Boolean       => Devide tags evenly;
+		Rank: 30,               // Integer 0-100 => Tag importance in procents;
+		Url: "#",               // String URL    => Tag url;
+		FontMin: 10,            // Float         => Font size for smallest tag in pixels;
+		FontMax: 24,            // Float         => Font size for biggest tag in pixels;
+		Depth: 150,             // Integer       => Perspective depth;
+		AnimationTime: 1,       // Integer       => Animation time and interval, the less it is, the faster the animation is;
+		HoverStop: 85,          // Integer 0-100 => Stop animation when tag is hovered or when cursor is removed out of the cloud;
+		OverWrite: false        // Boolean       => Override any existing HTML in the tagcloud element;
+	};
+
+	/* Variables */
+	var _TagCloud = _win.TagCloud,
+		_Tag = _win.Tag,
+		_Vector = _win.Vector,
+		_Surface = _win.Surface,
+		_TagID = 1,
+		_obj = Object.prototype.toString,
+		_objObj = "[object Object]",
+		isObject = function(arg) { return _obj.call(arg) === _objObj; },
+		isElement = function(arg) { return !!arg.nodeType; },
+		Radian = Math.PI / 180,
+		sine = [], cosine = [],
+		Sine = (function() {
+			var i = 0, total = 3600;
+			while(i < total) {
+				sine[i] = Math.sin(i / 10 * Radian);
+				i++;
+			}
+			return function Sine(angle) {
+				while(angle < 0) { angle += 360; }
+				return sine[Math.round(angle * 10) % total];
+			};
+		})(),
+		Cosine = (function() {
+			var i = 0, total = 3600;
+			while(i < total) {
+				cosine[i] = Math.cos(i / 10 * Radian);
+				i++;
+			}
+			return function Cosine(angle) { return cosine[Math.round(Math.abs(angle) * 10) % total]; };
+		})(),
+		Event = {
+			Add: (function() {
+				if(_doc.addEventListener) {
+					return function(obj, type, fn) {
+						fn = Event.Fix.call(this, type === "mouseenter" || type === "mouseleave" ? Event.mouseEnter(fn) : fn);
+						type = type === "mouseenter" && "mouseover" || type === "mouseleave" && "mouseout" || type;
+						obj.addEventListener(type, fn, false);
+						return function Add() {
+							obj.removeEventListener(type, fn, false);
+							return true;
+						};
+					};
+				} else if(_doc.attachEvent) {
+					return function(obj, type, fn) {
+						fn = Event.Fix.call(this, fn);
+						obj.attachEvent("on" + type, fn);
+						return function Add() {
+							obj.detachEvent("on" + type, fn);
+							return true;
+						};
+					};
+				}
+			})(),
+			Fix: function(fn) {
+				return function(event) {
+					if(!event.target) { event.target = event.srcElement || _doc; }
+					if(event.target.nodeType === 3) { event.target = event.target.parentNode; }
+					if(!event.relatedTarget && event.fromElement) { event.relatedTarget = event.fromElement === event.target ? event.toElement : event.fromElement; }
+					if(event.pageX === null && event.clientX !== null) {
 						var docE = _doc.documentElement, body = _doc.body;
 						event.pageX = event.clientX + (docE && docE.scrollLeft || body && body.scrollLeft || 0) - (docE && docE.clientLeft || body && body.clientLeft || 0);
 						event.pageY = event.clientY + (docE && docE.scrollTop  || body && body.scrollTop  || 0) - (docE && docE.clientTop  || body && body.clientTop  || 0);

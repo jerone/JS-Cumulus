@@ -4,8 +4,8 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 18-12-2011 14:00
-@version 0.2.2
+@date 18-12-2011 18:00
+@version 0.2.3
 
 Copyright 2010 - 2011, Jeroen van Warmerdam
 
@@ -30,7 +30,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *		ADD: Z-sorting;
 *		ADD: Slow down more on tag mouse focus;
 *		ADD: Calculating the color instead using the Opacity property;
-*		ADD: Style properties for tags;
 *		ADD: Touch events;
 *		ADD: Always on;
 *		FIX: Split hovering speed and blur speed;

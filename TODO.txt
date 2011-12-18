@@ -1,0 +1,9 @@
+TODO:
+	ADD: Mouse panning, zooming;
+	ADD: Documentation;
+	ADD: Z-sorting;
+	ADD: Slow down more on tag mouse focus;
+	ADD: Calculating the color instead using the Opacity property;
+	ADD: Touch events;
+	ADD: Always on;
+	ADD: Specify beginning origin; 

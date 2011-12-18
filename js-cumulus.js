@@ -24,18 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \*/
 
 /*\
-*	TODO:
-*		ADD: Mouse panning, zooming;
-*		ADD: Documentation;
-*		ADD: Z-sorting;
-*		ADD: Slow down more on tag mouse focus;
-*		ADD: Calculating the color instead using the Opacity property;
-*		ADD: Touch events;
-*		ADD: Always on;
-*		ADD: Specify beginning origin; 
-\*/
-
-/*\
 *	TagCloud arguments:
 *		element     => Element          => Element to append TagCloud (optional)(default: document.body);
 *		tags        => Array [Tag,...]  => List of tags (mandatory);

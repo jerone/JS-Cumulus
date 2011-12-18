@@ -261,18 +261,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 	/** Tag Class **/
-	var Tag = function(title, rank, url) {
+	var Tag = function(title, rank, url, styles) {
 		this.id = _TagID++;
 		this.title = title;
 		this.rank = ((!isNaN(rank) && rank >= 0 && rank <= 100) ? rank : Defaults.Rank) / 100;
 		this.url = url || (isNaN(rank) ? rank : false) || Defaults.Url;
 		this.position = new Vector();
+		
+		styles = styles || isObject(url) && url || isObject(rank) && rank || {};
 
 		var aa = _doc.createElement("a"),
 			li = _doc.createElement("li");
 		aa.setAttribute("id", "jsCumulus" + this.id);
 		aa.setAttribute("href", this.url);
 		aa.innerHTML = this.title;
+		
+		for(var style in styles){
+			aa.style[style] = styles[style];
+		}
+		
 		li.setAttribute("class", "tagClass");
 		li.style.position = "absolute";
 		li.appendChild(aa);

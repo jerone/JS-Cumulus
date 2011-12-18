@@ -4,8 +4,8 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 18-12-2011 18:00
-@version 0.2.3
+@date 18-12-2011 22:30
+@version 0.2.4
 
 Copyright 2010 - 2011, Jeroen van Warmerdam
 
@@ -32,7 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *		ADD: Calculating the color instead using the Opacity property;
 *		ADD: Touch events;
 *		ADD: Always on;
-*		FIX: Split hovering speed and blur speed;
 *		ADD: Specify beginning origin; 
 \*/
 
@@ -82,7 +81,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		FontMax: 24,            // Float         => Font size for biggest tag in pixels;
 		Depth: 150,             // Integer       => Perspective depth;
 		AnimationTime: 1,       // Integer       => Animation time and interval, the less it is, the faster the animation is;
-		HoverStop: 85,          // Integer 0-100 => Stop animation when tag is hovered or when cursor is removed out of the cloud;
+		HoverStop: 15,          // Integer 0-100 => Percent of decrease in animation speed when cursor is removed out of the tagcloud;
+		HoverTagStop: 95,       // Integer 0-100 => Percent of decrease in animation speed when tag is hovered;
 		OverWrite: false        // Boolean       => Override any existing HTML in the tagcloud element;
 	};
 
@@ -210,7 +210,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	var Attractor = function(parent, id, className) {
 		this.id = id;
 		this.className = className;
+
 		this.active = false;
+		this.activeTag = false;
+
 		this.mouse = new Vector();
 		this.position = new Vector();
 		this.size = new Surface({
@@ -230,7 +233,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			Event.Add(this.element, "mousemove", function(event) {
 				return function(event) {
 					if(!parent.active) { parent.Animate(); }
-					if(!(!!Defaults.HoverStop && !this.active)) {
+					if(this.active && !this.activeTag) {
 						this.Update();
 						this.mouse.set(
 							((-event.pageY + this.position.y) * 2 / this.size.height + 1) * 1.8,
@@ -266,19 +269,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		this.rank = ((!isNaN(rank) && rank >= 0 && rank <= 100) ? rank : Defaults.Rank) / 100;
 		this.url = url || (isNaN(rank) ? rank : false) || Defaults.Url;
 		this.position = new Vector();
-		
+
 		styles = styles || isObject(url) && url || isObject(rank) && rank || {};
 
-		var aa = _doc.createElement("a"),
-			li = _doc.createElement("li");
+		var aa = _doc.createElement("a");
 		aa.setAttribute("id", "jsCumulus" + this.id);
 		aa.setAttribute("href", this.url);
 		aa.innerHTML = this.title;
-		
 		for(var style in styles){
 			aa.style[style] = styles[style];
 		}
-		
+
+		var li = _doc.createElement("li");		
 		li.setAttribute("class", "tagClass");
 		li.style.position = "absolute";
 		li.appendChild(aa);
@@ -287,9 +289,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		this.Activate = function(attractor) {
 			Event.Add(this.element, "mouseenter", function() {
 				attractor.active = false;
+				attractor.activeTag = true;
 			});
 			Event.Add(this.element, "mouseleave", function() {
 				attractor.active = true;
+				attractor.activeTag = false;
 			});
 			return this;
 		};
@@ -414,6 +418,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			this.fps.elm = _doc.getElementById(this.attractor.id + "_fps");
 
 			this.Update();
+			
 			return this;
 		};
 
@@ -466,7 +471,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			var self = this;
 			this.animation = _win.setInterval(function() {
 				return function animation() {
-					this.delta = this.attractor.active ? this.attractor.mouse : this.delta.Multiply((Math.min(Defaults.HoverStop, 99) / 10 + 90) / 100);
+					if(this.attractor.active){
+						this.delta = this.attractor.mouse;
+					} else {
+						this.delta.Multiply(((100 - Math.min(this.attractor.activeTag ? Defaults.HoverTagStop : Defaults.HoverStop, 99)) / 10 + 90) / 100);
+					}
 					if(this.delta.Done()) {
 						this.Update(this.delta);
 					} else {

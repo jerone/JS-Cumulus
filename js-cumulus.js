@@ -68,6 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		Consistent : true,       // Boolean       => Devide tags evenly;
 		Rank : 30,               // Integer 0-100 => Tag importance in procents;
 		Url : "#",               // String URL    => Tag url;
+		OpenInNewWindow: false,  // Boolean       => Open tag url in new window or tab;
 		FontMin : 10,            // Float         => Font size for smallest tag in pixels;
 		FontMax : 24,            // Float         => Font size for biggest tag in pixels;
 		Depth : 150,             // Integer       => Perspective depth;
@@ -273,18 +274,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	};
 
 	/** Tag Class **/
-	var Tag = function(title, rank, url, styles){
+	var Tag = function(title, rank, url, openInNewWindow, styles){
 		this.id = _TagID++;
 		this.title = title;
 		this.rank = ((!isNaN(rank) && rank >= 0 && rank <= 100) ? rank : Defaults.Rank) / 100;
 		this.url = url || (isNaN(rank) ? rank : false) || Defaults.Url;
 		this.position = new Vector();
 
-		styles = styles || isObject(url) && url || isObject(rank) && rank || { };
+		openInNewWindow = arguments[4] && openInNewWindow || (openInNewWindow===true ? true : false) || (arguments[2]===true ? true : false) || Defaults.OpenInNewWindow;
+		styles = styles || isObject(arguments[3]) && arguments[3] || isObject(arguments[2]) && arguments[2] || isObject(arguments[1]) && arguments[1] || {};
 
 		var aa = _doc.createElement("a");
 		aa.setAttribute("id", "jsCumulus" + this.id);
 		aa.setAttribute("href", this.url);
+		if(openInNewWindow){
+			aa.setAttribute("target", "_blank");
+		}
 		aa.innerHTML = this.title;
 		for(var style in styles){
 			aa.style[style] = styles[style];

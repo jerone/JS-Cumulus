@@ -1,9 +1,11 @@
 TODO:
+	FIX: Documentation (http://www.jeroenvanwarmerdam.nl/content/resources/javascript/jscumulus/jscumulus.aspx);
+	FIX: Convert to canvas (http://www.goat1000.com/tagcanvas.php);
 	ADD: Mouse panning, zooming;
-	ADD: Documentation;
 	ADD: Z-sorting;
 	ADD: Slow down more on tag mouse focus;
 	ADD: Calculating the color instead using the Opacity property;
 	ADD: Touch events;
 	ADD: Always on;
-	ADD: Specify beginning origin; 
+	ADD: Specify beginning origin;
+	ADD: Tags from xml;

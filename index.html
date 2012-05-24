@@ -3,16 +3,17 @@
 <head>
 	<title>JS-Cumulus => WP-Cumulus in Javascript</title>
 
-	<script type="text/javascript" src="js-cumulus.min.js"></script>
+	<script type="text/javascript" src="js-cumulus.js"></script>
 
 	<script type="text/javascript">
 		//JSCumulus.noConflict();
 
-		/* TagCloud 1 */
 		/* DEBUG */ window.console && console.time && console.time("TagCloud1");
+		
+		/* TagCloud 1 */
 		var tags = [
 			new Tag("JS-Cumulus", 100),
-			new Tag("WP-Cumulus", 80, "http://www.roytanck.com/2008/05/19/how-to-repurpose-my-tag-cloud-flash-movie/"),
+			new Tag("WP-Cumulus", 80, "http://www.roytanck.com/2008/05/19/how-to-repurpose-my-tag-cloud-flash-movie/", true),
 			new Tag("Jeroen van Warmerdam", 60, "http://www.jeroenvanwarmerdam.nl"),
 			new Tag("Stratus", "http://student.agh.edu.pl/~fatyga/repos/stratus/example.php"),
 			new Tag("JavaScript", {
@@ -32,6 +33,7 @@
 			new Tag("<img src='icon-tagcloud.gif' />")
 		];
 		var tagCloud1 = new TagCloud(tags, 400, 400);
+		
 		/* DEBUG */ window.console && console.time && console.timeEnd("TagCloud1");
 	</script>
 
@@ -134,8 +136,9 @@
 	</div>
 
 	<script type="text/javascript">
-		/* TagCloud 2 */
 		/* DEBUG */ window.console && console.time && console.time("TagCloud2");
+		
+		/* TagCloud 2 */
 		var tags2 = [
 			new Tag("JS-Cumulus", 100),
 			new Tag("WP-Cumulus", 80, "http://www.roytanck.com/2008/05/19/how-to-repurpose-my-tag-cloud-flash-movie/"),
@@ -163,6 +166,7 @@
 			{ overwrite: true, id: "TagCloud2X" }
 		);
 		tagCloud2.Animate();
+		
 		/* DEBUG */ window.console && console.time && console.timeEnd("TagCloud2");
 
 

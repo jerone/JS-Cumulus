@@ -4,8 +4,8 @@ Based on Stratus plugin by Dawid Fatyga (fatyga@student.agh.edu.pl)
 Based on WP-Cumulus by Roy Tanck (http://www.roytanck.com)
 
 @author Jeroen van Warmerdam (aka jerone or jeronevw) (http://www.jeroenvanwarmerdam.nl)
-@date 18-12-2011 22:30
-@version 0.2.4
+@date 24-05-2012 02:15
+@version 0.2.5
 
 Copyright 2010 - 2012, Jeroen van Warmerdam
 
@@ -52,6 +52,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *		title       => String           => Title of the tag;
 *		rank        => Integer 0-100    => Importance of the tag (optional)(default: 30);
 *		url         => String           => Link of the tag (optional)(default "#");
+*		openInNewWindow => Boolean      => Open link in new window or tab (optional)(default: false);
+*		styles      => Object           => Style the tag (optional);
 \*/
 
 (function(_win, _doc, undefined){
